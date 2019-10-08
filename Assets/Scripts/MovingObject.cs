@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovementScript : MonoBehaviour
+public class MovingObject : MonoBehaviour
 {
 	[SerializeField] private float m_movementsSpeed = 5f;
 	[SerializeField] private float m_maxWalkingDistance = 10f;

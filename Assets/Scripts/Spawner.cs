@@ -5,16 +5,22 @@ using UnityEngine;
 public class Spawner : MonoBehaviour
 {
 	[Header("Spawn Info")]
-	public bool m_spawn = true;
-	public bool m_useECS = false;
-	public GameObject m_prefab;
+	[SerializeField] private bool m_spawn = true;
+	[SerializeField] private bool m_useECS = false;
+	[SerializeField] private GameObject[] m_prefabs;
 
 	[Header("Spawn Timing")]
-	[Range(1, 100)] public int m_spawnsPerInterval = 1;
-	[Range(.1f, 2f)] public float m_spawnInterval = 1f;
+	[Range(1, 100)]
+	[SerializeField] private int m_spawnsPerInterval = 1;
+
+	[Range(.1f, 2f)]
+	[SerializeField] private float m_spawnInterval = 1f;
+
+	[Range(5f, 100f)]
+	[SerializeField] private float m_spawnRadius = 5f;
 	
 	EntityManager m_manager;
-	Entity m_entityPrefab;
+	Entity[] m_entityPrefabs;
 
 	float m_cooldown;
 
@@ -24,7 +30,12 @@ public class Spawner : MonoBehaviour
 		if (m_useECS)
 		{
 			m_manager = World.Active.EntityManager;
-			m_entityPrefab = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_prefab, World.Active);
+			m_entityPrefabs = new Entity[m_prefabs.Length];
+			for(int i = 0; i < m_prefabs.Length; i++)
+			{
+				// converts gameobject to entity
+				m_entityPrefabs[i] = GameObjectConversionUtility.ConvertGameObjectHierarchy(m_prefabs[i], World.Active);
+			}
 		}
 	}
 
@@ -43,15 +54,20 @@ public class Spawner : MonoBehaviour
 	{
 		for (int i = 0; i < m_spawnsPerInterval; i++)
 		{
-			Vector3 pos = transform.position;
+			Vector3 randomInSphere = Random.insideUnitSphere * m_spawnRadius;
+			randomInSphere.y = 0;
+			Vector3 pos = transform.position + randomInSphere;
 
 			if (!m_useECS)
 			{
-				Instantiate(m_prefab, pos, Quaternion.identity);
+				var randomPrefab = m_prefabs[Random.Range(0, m_prefabs.Length)];
+				Instantiate(randomPrefab, pos, Quaternion.identity);
 			}
 			else
 			{
-				Entity enemy = m_manager.Instantiate(m_entityPrefab);
+				var randomEntityPrefab = m_entityPrefabs[Random.Range(0, m_entityPrefabs.Length)];
+				Entity enemy = m_manager.Instantiate(randomEntityPrefab);
+				// setting the position of entity
 				m_manager.SetComponentData(enemy, new Translation { Value = pos });
 			}
 		}
